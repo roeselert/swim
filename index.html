@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Schwimmen – Kartenspiel</title>
+  <meta name="description" content="Das Kartenspiel Schwimmen (31) gegen zwei Computergegner – offline spielbar als PWA.">
+  <meta name="theme-color" content="#1b5e20">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Schwimmen">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>Schwimmen</h1>
+    <div class="topbar-actions">
+      <button id="btn-rules" class="btn btn-ghost" type="button">Regeln</button>
+      <button id="btn-new" class="btn btn-ghost" type="button">Neues Spiel</button>
+    </div>
+  </header>
+
+  <main class="table" id="table">
+    <section class="opponents" id="opponents" aria-label="Gegner"></section>
+
+    <section class="middle" aria-label="Mitte">
+      <div class="middle-info">
+        <span id="round-info">Runde 1</span>
+        <span id="deck-info">Stapel: 20</span>
+      </div>
+      <div class="cards cards-lg" id="middle-cards"></div>
+      <p class="status" id="status" aria-live="polite"></p>
+    </section>
+
+    <section class="me" id="me" aria-label="Deine Hand">
+      <div class="player-head">
+        <span class="player-name" id="me-name">Du</span>
+        <span class="lives" id="me-lives"></span>
+        <span class="score" id="me-score"></span>
+      </div>
+      <div class="cards cards-lg" id="hand-cards"></div>
+      <div class="actions">
+        <button id="btn-swap-all" class="btn" type="button">Alle 3 tauschen</button>
+        <button id="btn-pass" class="btn" type="button">Schieben</button>
+        <button id="btn-knock" class="btn btn-accent" type="button">Klopfen</button>
+      </div>
+    </section>
+
+    <section class="log-wrap" aria-label="Spielverlauf">
+      <ul class="log" id="log"></ul>
+    </section>
+  </main>
+
+  <!-- Geberwahl -->
+  <div class="overlay hidden" id="ov-dealer" role="dialog" aria-modal="true" aria-labelledby="ov-dealer-title">
+    <div class="dialog">
+      <h2 id="ov-dealer-title">Du gibst</h2>
+      <p>Behältst du diese drei Karten, oder nimmst du blind die anderen drei? Die abgelehnten Karten kommen offen in die Mitte.</p>
+      <div class="cards cards-lg" id="dealer-cards"></div>
+      <p class="score" id="dealer-score"></p>
+      <div class="dialog-actions">
+        <button id="btn-keep" class="btn btn-accent" type="button">Behalten</button>
+        <button id="btn-other" class="btn" type="button">Andere nehmen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rundenende -->
+  <div class="overlay hidden" id="ov-round" role="dialog" aria-modal="true" aria-labelledby="ov-round-title">
+    <div class="dialog">
+      <h2 id="ov-round-title">Rundenende</h2>
+      <p id="round-reason"></p>
+      <div class="results" id="round-results"></div>
+      <div class="dialog-actions">
+        <button id="btn-next-round" class="btn btn-accent" type="button">Nächste Runde</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spielende -->
+  <div class="overlay hidden" id="ov-game" role="dialog" aria-modal="true" aria-labelledby="ov-game-title">
+    <div class="dialog">
+      <h2 id="ov-game-title">Spiel beendet</h2>
+      <p id="game-result"></p>
+      <p class="stats" id="game-stats"></p>
+      <div class="dialog-actions">
+        <button id="btn-new-game" class="btn btn-accent" type="button">Neues Spiel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Regeln -->
+  <div class="overlay hidden" id="ov-rules" role="dialog" aria-modal="true" aria-labelledby="ov-rules-title">
+    <div class="dialog dialog-wide">
+      <h2 id="ov-rules-title">Spielregeln</h2>
+      <div class="rules">
+        <p><strong>Ziel:</strong> Sammle drei Karten mit möglichst hohem Wert. Wer am Rundenende die wenigsten Punkte hat, verliert ein Leben.</p>
+        <p><strong>Karten:</strong> 32 Karten (7 bis Ass). 7–10 zählen ihren Wert, Bube, Dame und König 10, das Ass 11.</p>
+        <p><strong>Punkte:</strong> Es zählen nur Karten <em>derselben Farbe</em> (max. 31). Drei gleiche Werte zählen 30½, drei Asse sind <em>Feuer</em> (33).</p>
+        <p><strong>Geben:</strong> Der Geber bekommt zwei Blätter, sieht eines an und entscheidet, ob er es behält oder blind das andere nimmt. Das abgelehnte Blatt liegt offen in der Mitte.</p>
+        <p><strong>Zug:</strong> Wer dran ist, macht genau eins davon:</p>
+        <ul>
+          <li><strong>Tauschen:</strong> eine Handkarte gegen eine Karte aus der Mitte.</li>
+          <li><strong>Alle tauschen:</strong> alle drei Handkarten gegen die Mitte.</li>
+          <li><strong>Schieben:</strong> nichts tun. Schieben alle nacheinander, kommen drei neue Karten in die Mitte.</li>
+          <li><strong>Klopfen:</strong> statt zu tauschen. Danach hat jeder andere noch genau einen Zug, dann endet die Runde.</li>
+        </ul>
+        <p><strong>Sofortiges Rundenende:</strong> Wer 31 hält, beendet die Runde sofort. Bei Feuer verlieren alle anderen sofort ein Leben.</p>
+        <p><strong>Leben:</strong> Jeder hat 3 Leben. Wer alle verliert, „schwimmt“ – verliert er nochmals, scheidet er aus. Bei Gleichstand der schlechtesten Blätter verlieren alle Betroffenen ein Leben. Wer als Letzter übrig bleibt, gewinnt.</p>
+        <p><strong>Bedienung:</strong> Tippe eine Handkarte an und dann eine Karte aus der Mitte, um zu tauschen.</p>
+      </div>
+      <div class="dialog-actions">
+        <button id="btn-rules-close" class="btn btn-accent" type="button">Schließen</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast hidden" id="toast">
+    <span>Neue Version verfügbar.</span>
+    <button id="btn-reload" class="btn btn-small" type="button">Neu laden</button>
+  </div>
+
+  <script src="./game.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

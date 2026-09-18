@@ -1,0 +1,12 @@
+{
+  "name": "schwimmen-pwa",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Das Kartenspiel Schwimmen (31) als Progressive Web App – 1 Mensch gegen 2 Computergegner.",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "start": "npx http-server . -p 8080 -c-1",
+    "icons": "node tools/make-icons.js"
+  },
+  "license": "MIT"
+}
